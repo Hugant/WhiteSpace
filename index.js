@@ -20,32 +20,93 @@ const backParams = [
 ];
 
 const actorParams = [
-  new Actor("Goblin", 1, 1, 0, 1, 5, document.getElementById("goblin1I")),
-  new Actor("Hugant", 10, 1, 0, 1, 1, document.getElementById("heroI"))
+  new Actor({
+    name: "Knight",
+    x: -1,
+    y: -1,
+    hp: 10,
+    attack: 1,
+    defend: 0,
+    moves: 1,
+    amount: 1,
+    ally: true,
+    image: document.getElementById("heroI")
+  }),
+
+  new Actor({
+    name: "Goblin",
+    x: -1,
+    y: -1,
+    hp: 1,
+    attack: 1,
+    defend: 0,
+    moves: 1,
+    amount: 5,
+    ally: false,
+    image: document.getElementById("goblin1I")
+  }),
+
+  new Actor({
+    name: "Vampir",
+    x: -1,
+    y: -1,
+    hp: 2,
+    attack: 1,
+    defend: 0,
+    moves: 1,
+    amount: 1,
+    ally: false,
+    image: document.getElementById("vampirI")
+  })
 ];
 
 var backMap = new Map(ROWS, COLS).init(backParams);
 var actorMap = new ActorMap(ROWS, COLS).init(actorParams);
+var counter = 0;
 
 backMap.draw();
 actorMap.draw();
 
-setInterval(function () {
-  for (i = 0; i < ) {
-    console.log(id);
-    if (actorParams[id] != null && actorMap[id].name = "Hugant") {
-      if(isKeyDown("LEFT")) {
-        actorMap[id].dirMove("left");
-      }
-      if(isKeyDown("UP")) {
-        actorMap[id].dirMove("left");
-      }
-      if(isKeyDown("RIGHT")) {
-        actorMap[id].dirMove("left");
-      }
-      if(isKeyDown("DOWN")) {
-        actorMap[id].dirMove("left");
-      }
+createVirtualKeyboard();
+
+playerStep();
+
+window.requestAnimationFrame = (function(callback) {
+  return  window.requestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.oRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function(callback) {
+            window.setTimeout(callback, 1000 / 60);
+          };
+})();
+
+function playerStep() {
+  steped = actorMap.alliesQueue[counter].dirMove(keyDowned());
+  actorMap.animateDraw();
+
+  setTimeout(function() {
+    if (steped && ++counter >= actorMap.alliesQueue.length) {
+      counter = 0;
+      actorMap.updateQueues();
+      requestAnimationFrame(enemyStep);
+    } else {
+      requestAnimationFrame(playerStep);
     }
-  }
-}, 500);
+  }, 500);
+}
+
+function enemyStep() {
+  steped = actorMap.enemiesQueue[counter].cordMove(actorMap.alliesQueue[0]);
+
+  setTimeout(function() {
+    if (++counter >= actorMap.enemiesQueue.length) {
+      counter = 0;
+      actorMap.updateQueues();
+      requestAnimationFrame(playerStep);
+    } else {
+      requestAnimationFrame(enemyStep);
+    }
+  }, 100);
+}
